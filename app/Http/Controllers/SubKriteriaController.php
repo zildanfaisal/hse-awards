@@ -13,14 +13,20 @@ class SubKriteriaController extends Controller
      */
     public function index()
     {
-        // $subkriterias = SubKriteria::with('kriteria')->get();
-        // return view('subkriterias.index', compact('subkriterias'));
+        // $groupSubKriterias = SubKriteria::with('kriteria')->get()->groupBy(function($item) {
+        //     return $item->kriteria->nama_kriteria;
+        // });
 
-        $groupSubKriterias = SubKriteria::with('kriteria')->get()->groupBy(function($item) {
-            return $item->kriteria->nama_kriteria;
-        });
+        // return view('subkriterias.index', compact('groupSubKriterias'));
 
-        return view('subkriterias.index', compact('groupSubKriterias'));
+        $subkriterias = SubKriteria::with('kriteria')->get();
+
+        // Group by kriteria_id, lalu ambil semua kriteria
+        $groupSubKriterias = $subkriterias->groupBy('kriteria_id');
+
+        $kriterias = Kriteria::all()->keyBy('id'); // agar mudah ambil nama & bobot berdasarkan id
+
+        return view('subkriterias.index', compact('groupSubKriterias', 'kriterias'));
     }
 
     /**

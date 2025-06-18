@@ -30,7 +30,6 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Kriteria</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan Kriteria</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipe Kriteria</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bobot</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
@@ -40,7 +39,6 @@
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap">{{ $kriteria->nama_kriteria }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">{{ $kriteria->keterangan_kriteria }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ $kriteria->tipe_kriteria }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">{{ $kriteria->bobot }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <a href="{{ route('kriterias.edit', $kriteria->id) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>

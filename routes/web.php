@@ -6,7 +6,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProyekController;
 use App\Http\Controllers\KriteriaController;
 use App\Http\Controllers\SubKriteriaController;
-use App\Models\SubKriteria;
+use App\Http\Controllers\PenilaianController;
+use App\Models\Penilaian;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
@@ -38,6 +39,20 @@ Route::middleware('auth')->group(function () {
 
     // Route Sub-Kriteria
     Route::resource('subkriterias', SubKriteriaController::class)->except(['show']);
+
+    // Route Penilaian
+    Route::prefix('penilaian')->name('penilaian.')->group(function () {
+        Route::get('/', [PenilaianController::class, 'index'])->name('index');
+        Route::get('/{proyekId}/input', [PenilaianController::class, 'createEdit'])->name('create_edit');
+        Route::post('/{proyekId}/simpan', [PenilaianController::class, 'storeUpdate'])->name('store_update');
+    });
+
+    // Route untuk menampilkan hasil ranking (bisa diakses siapa saja yang auth)
+    Route::get('/awards/ranking', [PenilaianController::class, 'showRanking'])->name('awards.ranking');
+
+    Route::post('/awards/save-ranking', [PenilaianController::class, 'saveRanking'])->name('penilaian.save_ranking');
+    Route::get('/awards/history', [PenilaianController::class, 'showRankingHistory'])->name('awards.history');
+    Route::get('/awards/history/{batchId}', [PenilaianController::class, 'showRankingDetail'])->name('awards.history.detail');
 
 });
 

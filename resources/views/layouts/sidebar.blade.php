@@ -21,6 +21,9 @@
         <a href="{{ route('proyeks.index') }}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100">Data Proyek</a>
         <a href="{{ route('kriterias.index') }}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100">Data Kriteria</a>
         <a href="{{ route('subkriterias.index') }}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100">Data Sub-Kriteria</a>
+        <a href="{{ route('penilaian.index') }}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 {{ request()->routeIs('penilaian.index') || request()->routeIs('penilaian.create_edit') ? 'bg-gray-100 font-medium' : '' }}">Penilaian Proyek</a>
+        <a href="{{ route('awards.ranking') }}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 {{ request()->routeIs('awards.ranking') ? 'bg-gray-100 font-medium' : '' }}">Hasil Ranking</a>
+        <a href="{{ route('awards.history') }}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 {{ request()->routeIs('awards.history') || request()->routeIs('awards.history.detail') ? 'bg-gray-100 font-medium' : '' }}">Riwayat Ranking</a>
     </nav>
     
     <div class="absolute bottom-0 w-full p-4 border-t">

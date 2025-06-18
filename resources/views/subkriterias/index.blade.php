@@ -36,26 +36,41 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach ($groupSubKriterias as $kriteriaName => $subkriteriaGroup)
-                        <tr class="bg-gray-100">
-                            <td colspan="5" class="px-6 py-4 font-semibold text-gray-700">{{ $kriteriaName }}</td>
-                        </tr>
-                            @foreach ($subkriteriaGroup as $sub)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $sub->nama_sub_kriteria }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $sub->keterangan_sub_kriteria }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $sub->nilai_sub_kriteria }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $sub->kriteria->nama_kriteria }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <a href="{{ route('subkriterias.edit', $sub->id) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                                    <form action="{{ route('subkriterias.destroy', $sub->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin hapus user ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-800 ml-2">Hapus</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            @endforeach
+                        @foreach ($groupSubKriterias as $kriteriaId => $subkriteriaGroup)
+                            @php
+                                $kriteria = $kriterias[$kriteriaId];
+                            @endphp
+                            <tbody x-data="{ open: false }" class="border-t border-gray-200">
+                                {{-- Baris utama untuk kriteria (yang bisa diklik) --}}
+                                <tr class="bg-gray-100 cursor-pointer" @click="open = !open">
+                                    <td colspan="5" class="px-6 py-4 font-semibold text-gray-700">
+                                        <div class="flex items-center justify-between">
+                                            <span>{{ $kriteria->nama_kriteria }} (Bobot: {{ $kriteria->bobot }})</span>
+                                            <svg :class="{ 'rotate-180': open }" class="h-4 w-4 transform transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                {{-- Baris sub-kriteria --}}
+                                @foreach ($subkriteriaGroup as $sub)
+                                <tr x-show="open" x-cloak>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ $sub->nama_sub_kriteria }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ $sub->keterangan_sub_kriteria }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ $sub->nilai_sub_kriteria }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ $sub->kriteria->nama_kriteria }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <a href="{{ route('subkriterias.edit', $sub->id) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                                        <form action="{{ route('subkriterias.destroy', $sub->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin hapus user ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-800 ml-2">Hapus</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
                         @endforeach
                     </tbody>
                 </table>

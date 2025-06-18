@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('penilaians', function (Blueprint $table) {
+        Schema::create('ranking_details', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('ranking_batch_id')->constrained('ranking_batches')->onDelete('cascade');
             $table->foreignId('proyek_id')->constrained('proyeks')->onDelete('cascade');
-            $table->foreignId('kriteria_id')->constrained('kriterias')->onDelete('cascade');
-            $table->foreignId('sub_kriteria_id')->constrained('sub_kriterias')->onDelete('cascade');
-            $table->unique(['proyek_id', 'kriteria_id']);
+            $table->double('final_maut_score');
+            $table->integer('rank');
             $table->timestamps();
+
+            $table->unique(['ranking_batch_id', 'proyek_id']);
         });
     }
 
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('penilaians');
+        Schema::dropIfExists('ranking_details');
     }
 };
