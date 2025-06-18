@@ -52,6 +52,8 @@
             }
         </style>
 
+        <link rel="icon" type="image/png" href="{{ asset('img/logo-qhse.png') }}">
+
         <title>{{ $title ?? config('app.name', 'HSE Awards') }}</title>
 
         <!-- Fonts -->

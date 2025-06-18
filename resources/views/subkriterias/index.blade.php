@@ -19,30 +19,33 @@
             @endif
 
             <div class="mb-4">
-                <a href="{{ route('subkriterias.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                    Tambah Sub-Kriteria
-                </a>
+                @if(Auth::user()->role === 'super-admin')
+                    <a href="{{ route('subkriterias.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                        Tambah Sub-Kriteria
+                    </a>
+                @endif
             </div>
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+            <div class="bg-white overflow-hidden shadow-lg rounded-2xl">
+                <table class="min-w-full divide-y divide-gray-200 rounded-2xl overflow-hidden">
+                    <thead class="bg-gray-50 sticky top-0 z-10">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Sub-Kriteria</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan Sub-Kriteria</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kriteria</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nama Sub-Kriteria</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Keterangan Sub-Kriteria</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nilai</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kriteria</th>
+                            @if(Auth::user()->role === 'super-admin')
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi</th>
+                            @endif
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-gray-100">
                         @foreach ($groupSubKriterias as $kriteriaId => $subkriteriaGroup)
                             @php
                                 $kriteria = $kriterias[$kriteriaId];
                             @endphp
                             <tbody x-data="{ open: false }" class="border-t border-gray-200">
-                                {{-- Baris utama untuk kriteria (yang bisa diklik) --}}
-                                <tr class="bg-gray-100 cursor-pointer" @click="open = !open">
+                                <tr class="bg-gray-100 cursor-pointer hover:bg-blue-100 transition" @click="open = !open">
                                     <td colspan="5" class="px-6 py-4 font-semibold text-gray-700">
                                         <div class="flex items-center justify-between">
                                             <span>{{ $kriteria->nama_kriteria }} (Bobot: {{ $kriteria->bobot }})</span>
@@ -52,22 +55,22 @@
                                         </div>
                                     </td>
                                 </tr>
-
-                                {{-- Baris sub-kriteria --}}
                                 @foreach ($subkriteriaGroup as $sub)
-                                <tr x-show="open" x-cloak>
+                                <tr x-show="open" x-cloak class="hover:bg-blue-50 transition">
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $sub->nama_sub_kriteria }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $sub->keterangan_sub_kriteria }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $sub->nilai_sub_kriteria }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $sub->kriteria->nama_kriteria }}</td>
+                                    @if(Auth::user()->role === 'super-admin')
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <a href="{{ route('subkriterias.edit', $sub->id) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                                        <a href="{{ route('subkriterias.edit', $sub->id) }}" class="text-indigo-600 hover:text-indigo-900 font-semibold">Edit</a>
                                         <form action="{{ route('subkriterias.destroy', $sub->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin hapus user ini?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-800 ml-2">Hapus</button>
+                                            <button type="submit" class="text-red-600 hover:text-red-800 ml-2 font-semibold">Hapus</button>
                                         </form>
                                     </td>
+                                    @endif
                                 </tr>
                                 @endforeach
                             </tbody>

@@ -10,29 +10,37 @@
                 <div class="mb-4 font-medium text-sm text-green-600">{{ session('success') }}</div>
             @endif
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+            <div class="bg-white overflow-hidden shadow-lg rounded-2xl">
+                <table class="min-w-full divide-y divide-gray-200 rounded-2xl overflow-hidden">
+                    <thead class="bg-gray-50 sticky top-0 z-10">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Sesi</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dihitung Oleh</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Dihitung</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nama Sesi</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Dihitung Oleh</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal Dihitung</th>
+                            @if(Auth::user()->role === 'super-admin')
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi</th>
+                            @endif
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-gray-100">
                         @forelse ($rankingBatches as $batch)
-                        <tr>
+                        <tr class="hover:bg-blue-50 transition cursor-pointer" onclick="window.location='{{ route('awards.history.detail', $batch->id) }}'">
                             <td class="px-6 py-4 whitespace-nowrap">{{ $batch->nama_sesi ?? 'Tanpa Nama Sesi' }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">{{ $batch->user->name ?? 'N/A' }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">{{ $batch->calculated_at->format('d M Y H:i') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <a href="{{ route('awards.history.detail', $batch->id) }}" class="text-blue-600 hover:text-blue-900">Lihat Detail</a>
+                            @if(Auth::user()->role === 'super-admin')
+                            <td class="px-6 py-4 whitespace-nowrap" onclick="event.stopPropagation();">
+                                <form action="{{ route('awards.history.destroy', $batch->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin hapus riwayat ranking ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-800 font-semibold">Hapus</button>
+                                </form>
                             </td>
+                            @endif
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">Belum ada riwayat ranking yang tersimpan.</td>
+                            <td colspan="{{ Auth::user()->role === 'super-admin' ? 4 : 3 }}" class="px-6 py-4 text-center text-gray-500">Belum ada riwayat ranking yang tersimpan.</td>
                         </tr>
                         @endforelse
                     </tbody>

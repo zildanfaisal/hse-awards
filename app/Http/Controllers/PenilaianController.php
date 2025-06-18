@@ -11,6 +11,7 @@ use App\Models\RankingBatch;
 use App\Models\RankingDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PenilaianController extends Controller
 {
@@ -137,6 +138,7 @@ class PenilaianController extends Controller
                 'nama_sesi' => $request->input('nama_sesi') ?? 'Ranking ' . Carbon::now()->format('d M Y H:i'),
                 'calculated_at' => Carbon::now(),
                 'catatan' => $request->input('catatan'),
+                'user_id' => Auth::id(),
             ]);
 
             $rank = 1;
@@ -145,10 +147,12 @@ class PenilaianController extends Controller
                     'ranking_batch_id' => $rankingBatch->id,
                     'proyek_id' => $proyek->id,
                     'final_maut_score' => $proyek->maut_score, // <-- PERBAIKAN DI SINI
-                    'rank' => $rank++,
+                    'rank' => $rank++, 
                 ]);
             }
-            return redirect()->route('awards.history')->with('success', 'Ranking berhasil disimpan!');
+            // Hapus semua data penilaian setelah ranking disimpan
+            \App\Models\Penilaian::truncate();
+            return redirect()->route('awards.history')->with('success', 'Ranking berhasil disimpan dan semua nilai proyek telah direset!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menyimpan ranking: ' . $e->getMessage());
         }
@@ -165,5 +169,32 @@ class PenilaianController extends Controller
         $rankingBatch = RankingBatch::with(['details.proyek'])->findOrFail($batchId);
         $rankedDetails = $rankingBatch->details->sortBy('rank'); // Urutkan berdasarkan rank
         return view('penilaian.history_detail', compact('rankingBatch', 'rankedDetails'));
+    }
+
+    public function editRankingBatch($batchId)
+    {
+        $rankingBatch = \App\Models\RankingBatch::findOrFail($batchId);
+        return view('penilaian.edit_ranking_batch', compact('rankingBatch'));
+    }
+
+    public function updateRankingBatch(Request $request, $batchId)
+    {
+        $rankingBatch = \App\Models\RankingBatch::findOrFail($batchId);
+        $request->validate([
+            'nama_sesi' => 'required|string|max:255',
+            'catatan' => 'nullable|string|max:1000',
+        ]);
+        $rankingBatch->update([
+            'nama_sesi' => $request->input('nama_sesi'),
+            'catatan' => $request->input('catatan'),
+        ]);
+        return redirect()->route('awards.history')->with('success', 'Riwayat ranking berhasil diperbarui.');
+    }
+
+    public function destroyRankingBatch($batchId)
+    {
+        $rankingBatch = \App\Models\RankingBatch::findOrFail($batchId);
+        $rankingBatch->delete(); // Akan otomatis menghapus detail karena relasi cascade
+        return redirect()->route('awards.history')->with('success', 'Riwayat ranking berhasil dihapus.');
     }
 }

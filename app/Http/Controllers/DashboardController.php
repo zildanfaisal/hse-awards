@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Proyek;
 use App\Models\Kriteria;
 use App\Models\SubKriteria;
+use App\Models\RankingBatch;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -18,10 +19,12 @@ class DashboardController extends Controller
         $totalProyek = Proyek::count();
         $totalKriteria = Kriteria::count();
         $totalSubKriteria = SubKriteria::count();
+        $totalRanking = RankingBatch::count();
 
         $recentProyek = Proyek::latest()->take(5)->get();
+        $recentRankingBatches = RankingBatch::with('user')->latest('calculated_at')->take(5)->get();
 
-        return view('dashboard', compact('totalProyek', 'totalKriteria', 'totalSubKriteria', 'recentProyek'));
+        return view('dashboard', compact('totalProyek', 'totalKriteria', 'totalSubKriteria', 'totalRanking', 'recentProyek', 'recentRankingBatches'));
     }
 
     /**
