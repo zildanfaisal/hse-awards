@@ -11,6 +11,8 @@ class RankingBatch extends Model
         'calculated_at',
         'user_id',
         'catatan',
+        'calculation_details',
+        'assessment_details',
     ];
 
     protected $casts = [

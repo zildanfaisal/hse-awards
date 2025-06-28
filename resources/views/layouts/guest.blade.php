@@ -13,16 +13,19 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-            <div>
+    <body class="font-sans text-gray-900 antialiased" style="background-image: url('{{ asset('img/logo-wika.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
+            <div class="w-full sm:max-w-md mt-2 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
                 <a href="/">
                     <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
                 </a>
-            </div>
-
-            <div class="w-full sm:max-w-md mt-2 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
+                <div class="text-center mb-6">
+                    <span class="block text-lg font-bold text-gray-800">Health Safety and</span>
+                    <span class="block text-lg font-bold text-gray-800">Environment Awards</span>
+                </div>
+            
                 {{ $slot }}
             </div>
         </div>
@@ -46,5 +49,25 @@
                 }
             }
         </script>
+        @if(session('error'))
+        <script>
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: '{{ session('error') }}',
+            confirmButtonColor: '#d33'
+          });
+        </script>
+        @endif
+        @if(session('status'))
+        <script>
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: '{{ session('status') }}',
+            confirmButtonColor: '#d33'
+          });
+        </script>
+        @endif
     </body>
 </html>

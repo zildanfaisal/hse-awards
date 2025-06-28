@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -21,7 +22,8 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('users.create');
+        $roles = Role::all();
+        return view('users.create', compact('roles'));
     }
 
     /**
@@ -33,15 +35,15 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:super-admin,tim-penilai',
+            'roles' => 'required|array',
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-            'role' => $request->role,
-        ]); 
+        ]);
+        $user->roles()->sync($request->roles);
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
@@ -59,7 +61,9 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        $roles = Role::all();
+        $userRoleIds = $user->roles->pluck('id')->toArray();
+        return view('users.edit', compact('user', 'roles', 'userRoleIds'));
     }
 
     /**
@@ -70,10 +74,11 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|in:super-admin,tim-penilai',
+            'roles' => 'required|array',
         ]);
 
-        $user->update($request->only('name', 'email', 'role'));
+        $user->update($request->only('name', 'email'));
+        $user->roles()->sync($request->roles);
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }

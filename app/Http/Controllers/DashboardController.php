@@ -22,7 +22,24 @@ class DashboardController extends Controller
         $totalRanking = RankingBatch::count();
 
         $recentProyek = Proyek::latest()->take(5)->get();
-        $recentRankingBatches = RankingBatch::with('user')->latest('calculated_at')->take(5)->get();
+        $recentRankingBatches = RankingBatch::with(['user', 'details.proyek'])
+            ->latest('calculated_at')
+            ->take(5)
+            ->get()
+            ->map(function($batch) {
+                return [
+                    'id' => $batch->id,
+                    'nama_sesi' => $batch->nama_sesi,
+                    'calculated_at' => $batch->calculated_at ? $batch->calculated_at->format('d M Y H:i') : null,
+                    'user_name' => $batch->user ? $batch->user->name : null,
+                    'details' => $batch->details->map(function($detail) {
+                        return [
+                            'final_maut_score' => $detail->final_maut_score,
+                            'proyek' => $detail->proyek ? $detail->proyek->nama_proyek : null,
+                        ];
+                    })->toArray(),
+                ];
+            })->toArray();
 
         return view('dashboard', compact('totalProyek', 'totalKriteria', 'totalSubKriteria', 'totalRanking', 'recentProyek', 'recentRankingBatches'));
     }

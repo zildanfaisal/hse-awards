@@ -18,41 +18,53 @@
                 </div>
             @endif
 
-            <form action="{{ route('proyeks.update', $proyek->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-                <div class="space-y-6">
-                    <div>
-                        <label for="kode_proyek" class="block text-sm font-medium text-gray-700">Kode Proyek</label>
-                        <input type="text" name="kode_proyek" id="kode_proyek" value="{{ old('kode_proyek', $proyek->kode_proyek) }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
+            <div class="bg-white overflow-hidden shadow-lg rounded-2xl p-8">
+                <form action="{{ route('proyeks.update', $proyek->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="space-y-6">
+                        <div>
+                            <label for="kode_proyek" class="block text-sm font-medium text-gray-700">Kode Proyek</label>
+                            <input type="text" name="kode_proyek" id="kode_proyek" value="{{ old('kode_proyek', $proyek->kode_proyek) }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100" readonly">
+                        </div>
 
-                    <div>
-                        <label for="nama_proyek" class="block text-sm font-medium text-gray-700">Nama Proyek</label>
-                        <input type="text" name="nama_proyek" id="nama_proyek" value="{{ old('nama_proyek', $proyek->nama_proyek) }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    
-                    <div>
-                        <label for="manajer_proyek" class="block text-sm font-medium text-gray-700">Manajer Proyek</label>
-                        <input type="text" name="manajer_proyek" id="manajer_proyek" value="{{ old('manajer_proyek', $proyek->manajer_proyek) }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
+                        <div>
+                            <label for="nama_proyek" class="block text-sm font-medium text-gray-700">Nama Proyek</label>
+                            <input type="text" name="nama_proyek" id="nama_proyek" value="{{ old('nama_proyek', $proyek->nama_proyek) }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label for="manajer_proyek_id" class="block text-sm font-medium text-gray-700">Manajer Proyek</label>
+                            <select name="manajer_proyek_id" id="manajer_proyek_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Pilih Manajer</option>
+                                @foreach($manajers as $manajer)
+                                    <option value="{{ $manajer->id }}" {{ old('manajer_proyek_id', $proyek->manajer_proyek_id) == $manajer->id ? 'selected' : '' }}>{{ $manajer->kode_manajer }} - {{ $manajer->nama_manajer }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                    <div>
-                        <label for="jenis_proyek" class="block text-sm font-medium text-gray-700">Jenis Proyek</label>
-                        <input type="text" name="jenis_proyek" id="jenis_proyek" value="{{ old('jenis_proyek', $proyek->jenis_proyek) }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
+                        <div>
+                            <label for="jenis_proyek_id" class="block text-sm font-medium text-gray-700">Jenis Proyek</label>
+                            <select name="jenis_proyek_id" id="jenis_proyek_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Pilih Jenis</option>
+                                @foreach($jenisList as $jenis)
+                                    <option value="{{ $jenis->id }}" {{ old('jenis_proyek_id', $proyek->jenis_proyek_id) == $jenis->id ? 'selected' : '' }}>{{ $jenis->kode_jenis }} - {{ $jenis->nama_jenis }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                    <div>
-                        <label for="lokasi_proyek" class="block text-sm font-medium text-gray-700">Lokasi Proyek</label>
-                        <textarea name="lokasi_proyek" id="lokasi_proyek" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ $proyek->lokasi_proyek }}</textarea>
-                    </div>
+                        <div>
+                            <label for="lokasi_proyek" class="block text-sm font-medium text-gray-700">Lokasi Proyek</label>
+                            <textarea name="lokasi_proyek" id="lokasi_proyek" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ $proyek->lokasi_proyek }}</textarea>
+                        </div>
 
-                    <div class="flex justify-end">
-                        <a href="{{ route('proyeks.index') }}" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</a>
-                        <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">Save</button>
+                        <div class="flex justify-end pt-4">
+                            <a href="{{ route('proyeks.index') }}" class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-200">Batal</a>
+                            <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Simpan Perubahan</button>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 </x-app-layout>
