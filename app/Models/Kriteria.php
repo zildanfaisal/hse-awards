@@ -13,10 +13,17 @@ class Kriteria extends Model
         'keterangan_kriteria',
         'tipe_kriteria',
         'bobot',
+        'tahun',
+        'periode_id',
     ];
 
     public function subKriterias()
     {
         return $this->hasMany(Subkriteria::class);
+    }
+
+    public function periode()
+    {
+        return $this->belongsTo(Periode::class);
     }
 }

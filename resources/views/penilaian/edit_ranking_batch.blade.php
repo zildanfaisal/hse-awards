@@ -34,7 +34,7 @@
                             <select name="user_id" id="user_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                                 @foreach($users as $user)
                                     <option value="{{ $user->id }}" {{ $rankingBatch->user_id == $user->id ? 'selected' : '' }}>
-                                        {{ $user->name }} ({{ $user->role }})
+                                        {{ $user->name }}
                                     </option>
                                 @endforeach
                             </select>

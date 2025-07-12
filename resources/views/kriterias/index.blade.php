@@ -18,7 +18,17 @@
                 </div>
             @endif
 
-            <div class="mb-4">
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <form id="filter-tahun-form" method="GET" action="">
+                        <label for="filter-tahun" class="mr-2 font-medium text-gray-700">Tahun:</label>
+                        <select name="tahun" id="filter-tahun" class="rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                            @foreach($tahunList as $tahun)
+                                <option value="{{ $tahun }}" {{ $tahunDipilih == $tahun ? 'selected' : '' }}>{{ $tahun }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                </div>
                 @can('kriteria.create')
                     <a href="{{ route('kriterias.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                         Tambah Kriteria
@@ -50,7 +60,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-center align-middle">{{ $loop->iteration }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-center align-middle">{{ $kriteria->kode_kriteria }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-left align-middle">{{ $kriteria->nama_kriteria }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center align-middle">{{ $kriteria->keterangan_kriteria }}</td>
+                            <td style="white-space: normal; word-break: break-word; max-width: 200px;" class="px-6 py-4 whitespace-nowrap text-center align-middle">{{ $kriteria->keterangan_kriteria }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-center align-middle">{{ $kriteria->bobot }}</td>
                             @if(
                                 Auth::user()->can('kriteria.edit') ||
@@ -76,6 +86,13 @@
                                             </svg>
                                         </button>
                                     </form>
+                                    @endcan
+                                    @can('view_audit_log')
+                                    <a href="{{ route('kriterias.audit_log_per_kriteria', $kriteria->id) }}" class="text-indigo-600 hover:text-indigo-900 p-1 rounded hover:bg-indigo-50 transition-colors" title="Audit Log">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </a>
                                     @endcan
                                 </div>
                             </td>
@@ -103,6 +120,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('filter-tahun').addEventListener('change', function() {
+        document.getElementById('filter-tahun-form').submit();
+    });
     document.querySelectorAll('.btn-delete-kriteria').forEach(function(btn) {
         btn.addEventListener('click', function() {
             const id = this.getAttribute('data-id');

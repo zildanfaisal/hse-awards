@@ -65,5 +65,12 @@ class RolePermissionSeeder extends Seeder
                 $user->assignRole('super_admin');
             }
         }
+        // Tambah permission kelola_periode
+        $kelolaPeriode = Permission::firstOrCreate(['name' => 'kelola_periode']);
+        // Assign ke role superadmin
+        $superadmin = Role::where('name', 'super_admin')->first();
+        if ($superadmin) {
+            $superadmin->givePermissionTo($kelolaPeriode);
+        }
     }
 } 

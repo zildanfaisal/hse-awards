@@ -25,7 +25,7 @@
                     <div class="space-y-6">
                         <div>
                             <label for="kode_proyek" class="block text-sm font-medium text-gray-700">Kode Proyek</label>
-                            <input type="text" name="kode_proyek" id="kode_proyek" value="{{ old('kode_proyek', $proyek->kode_proyek) }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100" readonly">
+                            <input type="text" name="kode_proyek" id="kode_proyek" value="{{ old('kode_proyek', $proyek->kode_proyek) }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100" readonly>
                         </div>
 
                         <div>
@@ -56,6 +56,11 @@
                         <div>
                             <label for="lokasi_proyek" class="block text-sm font-medium text-gray-700">Lokasi Proyek</label>
                             <textarea name="lokasi_proyek" id="lokasi_proyek" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ $proyek->lokasi_proyek }}</textarea>
+                        </div>
+
+                        <div>
+                            <label for="tahun" class="block text-sm font-medium text-gray-700">Tahun</label>
+                            <input type="number" name="tahun" id="tahun" min="2020" max="2100" value="{{ old('tahun', $proyek->tahun) }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
 
                         <div class="flex justify-end pt-4">

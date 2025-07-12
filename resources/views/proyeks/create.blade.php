@@ -57,6 +57,11 @@
                             <textarea name="lokasi_proyek" id="lokasi_proyek" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                         </div>
 
+                        <div>
+                            <label for="tahun" class="block text-sm font-medium text-gray-700">Tahun</label>
+                            <input type="number" name="tahun" id="tahun" min="2020" max="2100" value="{{ date('Y') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+
                         <div class="flex justify-end pt-4">
                             <a href="{{ route('proyeks.index') }}" class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-200">Batal</a>
                             <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Simpan</button>

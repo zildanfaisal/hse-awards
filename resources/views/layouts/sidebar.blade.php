@@ -28,6 +28,9 @@
     @endphp
     <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto max-h-screen sidebar-scroll-hide">
         <a href="{{ route('dashboard') }}" class="block py-2 px-4 rounded-lg font-medium transition-all duration-200 {{ request()->routeIs('dashboard') ? 'bg-white/80 text-indigo-700 shadow' : 'text-white hover:bg-white/20' }}">Dashboard</a>
+        @can('kelola_periode')
+        <a href="{{ route('periodes.index') }}" class="block py-2 px-4 rounded-lg font-medium transition-all duration-200 {{ request()->routeIs('periodes.*') ? 'bg-white/80 text-indigo-700 shadow' : 'text-white hover:bg-white/20' }}">Manajemen Periode</a>
+        @endcan
         @if($canAksesUser)
         <div x-data="{ open: {{ request()->routeIs('users.*') || request()->routeIs('roles.*') ? 'true' : 'false' }} }" class="mb-2">
             <button @click="open = !open" class="w-full flex items-center justify-between py-2 px-4 rounded-lg font-medium transition-all duration-200 text-white hover:bg-white/20 focus:outline-none">
@@ -53,7 +56,7 @@
                 <a href="{{ route('jenis-proyeks.index') }}" class="block py-2 px-4 rounded-lg font-medium transition-all duration-200 {{ request()->routeIs('jenis-proyeks.*') ? 'bg-white/80 text-indigo-700 shadow' : 'text-white hover:bg-white/10' }}">Data Jenis Proyek</a>
             </div>
         </div>
-        <a href="{{ route('kriterias.index') }}" class="block py-2 px-4 rounded-lg font-medium transition-all duration-200 {{ request()->routeIs('kriterias.*') ? 'bg-white/80 text-indigo-700 shadow' : 'text-white hover:bg-white/20' }}">Data Kriteria</a>
+        <a href="{{ route('kriterias.index') }}" class="block py-2 px-4 rounded-lg font-medium transition-all duration-200 {{ request()->routeIs('kriterias.index') ? 'bg-white/80 text-indigo-700 shadow' : 'text-white hover:bg-white/20' }}">Data Kriteria</a>
         <a href="{{ route('subkriterias.index') }}" class="block py-2 px-4 rounded-lg font-medium transition-all duration-200 {{ request()->routeIs('subkriterias.*') ? 'bg-white/80 text-indigo-700 shadow' : 'text-white hover:bg-white/20' }}">Data Sub-Kriteria</a>
         @can('penilaian')
         <a href="{{ route('penilaian.index') }}" class="block py-2 px-4 rounded-lg font-medium transition-all duration-200 {{ request()->routeIs('penilaian.index') || request()->routeIs('penilaian.create_edit') ? 'bg-white/80 text-indigo-700 shadow' : 'text-white hover:bg-white/20' }}">Penilaian Proyek</a>

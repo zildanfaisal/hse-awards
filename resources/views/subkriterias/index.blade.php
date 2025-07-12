@@ -18,7 +18,17 @@
                 </div>
             @endif
 
-            <div class="mb-4">
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <form id="filter-tahun-form" method="GET" action="">
+                        <label for="filter-tahun" class="mr-2 font-medium text-gray-700">Tahun:</label>
+                        <select name="tahun" id="filter-tahun" class="rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                            @foreach($tahunList as $tahun)
+                                <option value="{{ $tahun }}" {{ $tahunDipilih == $tahun ? 'selected' : '' }}>{{ $tahun }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                </div>
                 @can('sub_kriteria.create')
                     <a href="{{ route('subkriterias.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                         Tambah Sub-Kriteria
@@ -46,13 +56,17 @@
                     <tbody class="bg-white divide-y divide-gray-100 text-center">
                         @foreach ($groupSubKriterias as $kriteriaId => $subkriteriaGroup)
                             @php
-                                $kriteria = $kriterias[$kriteriaId];
+                                $kriteria = $kriterias[$kriteriaId] ?? null;
                             @endphp
                             <tbody x-data="{ open: false }" class="border-t border-gray-200 text-center align-middle">
                                 <tr class="bg-gray-100 cursor-pointer hover:bg-blue-100 transition text-center align-middle" @click="open = !open">
                                     <td colspan="{{ (Auth::user()->can('sub_kriteria.edit') || Auth::user()->can('sub_kriteria.input_bobot') || Auth::user()->can('sub_kriteria.delete')) ? 5 : 4 }}" class="px-6 py-4 font-semibold text-gray-700 text-center align-middle">
                                         <div class="flex items-center justify-between">
-                                            <span class="font-bold">[{{ $kriteria->kode_kriteria }}]</span> {{ $kriteria->nama_kriteria }} (Bobot: {{ $kriteria->bobot }})</span>
+                                            @if($kriteria)
+                                                <span class="font-bold">[{{ $kriteria->kode_kriteria }}]</span> {{ $kriteria->nama_kriteria }} (Bobot: {{ $kriteria->bobot }})
+                                            @else
+                                                <span class="text-red-500">Kriteria tidak ditemukan (ID: {{ $kriteriaId }})</span>
+                                            @endif
                                             <svg :class="{ 'rotate-180': open }" class="h-4 w-4 transform transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                                             </svg>
@@ -107,6 +121,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('filter-tahun').addEventListener('change', function() {
+        document.getElementById('filter-tahun-form').submit();
+    });
     document.querySelectorAll('.btn-delete-subkriteria').forEach(function(btn) {
         btn.addEventListener('click', function() {
             const id = this.getAttribute('data-id');

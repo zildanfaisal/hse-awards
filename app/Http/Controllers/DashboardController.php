@@ -16,12 +16,13 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $totalProyek = Proyek::count();
-        $totalKriteria = Kriteria::count();
-        $totalSubKriteria = SubKriteria::count();
+        $periode = \App\Models\Periode::getActivePeriode();
+        $totalProyek = Proyek::where('periode_id', $periode?->id)->count();
+        $totalKriteria = Kriteria::where('periode_id', $periode?->id)->count();
+        $totalSubKriteria = SubKriteria::where('periode_id', $periode?->id)->count();
         $totalRanking = RankingBatch::count();
 
-        $recentProyek = Proyek::latest()->take(5)->get();
+        $recentProyek = Proyek::where('periode_id', $periode?->id)->latest()->take(5)->get();
         $recentRankingBatches = RankingBatch::with(['user', 'details.proyek'])
             ->latest('calculated_at')
             ->take(5)
@@ -41,7 +42,11 @@ class DashboardController extends Controller
                 ];
             })->toArray();
 
-        return view('dashboard', compact('totalProyek', 'totalKriteria', 'totalSubKriteria', 'totalRanking', 'recentProyek', 'recentRankingBatches'));
+        // Ambil tahun periode HSE Awards terakhir dari ranking_batches
+        $lastRankingBatch = RankingBatch::orderByDesc('calculated_at')->first();
+        $periodeHseAwards = $periode ? $periode->nama_periode : '-';
+
+        return view('dashboard', compact('totalProyek', 'totalKriteria', 'totalSubKriteria', 'totalRanking', 'recentProyek', 'recentRankingBatches', 'periodeHseAwards'));
     }
 
     /**

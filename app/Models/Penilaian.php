@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Proyek;
 use App\Models\Kriteria;
 use App\Models\SubKriteria;
+use App\Models\Periode;
 use Illuminate\Database\Eloquent\Model;
 
 class Penilaian extends Model
@@ -28,5 +29,10 @@ class Penilaian extends Model
     public function subKriteria()
     {
         return $this->belongsTo(SubKriteria::class);
+    }
+
+    public function periode()
+    {
+        return $this->belongsTo(Periode::class);
     }
 }

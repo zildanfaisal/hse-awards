@@ -6,22 +6,23 @@ use App\Models\Kriteria;
 use App\Models\Sub_kriteria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Periode;
 
 class KriteriaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Fetch all criteria from the database
-        $kriterias = Kriteria::all();
-
-        // Hitung Nilai Bobot
+        $periode = Periode::getActivePeriode();
+        $kriterias = $periode ? Kriteria::where('periode_id', $periode->id)->get() : collect();
+        $tahunList = Kriteria::where('periode_id', $periode?->id)->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun')->toArray();
+        $tahunTerbaru = $tahunList[0] ?? date('Y');
+        $tahunDipilih = $request->get('tahun', $tahunTerbaru);
+        $kriterias = $kriterias->where('tahun', $tahunDipilih);
         $total_bobot = $kriterias->sum('bobot');
-
-        // Return the view with the criteria data
-        return view('kriterias.index', compact('kriterias', 'total_bobot'));
+        return view('kriterias.index', compact('kriterias', 'total_bobot', 'tahunList', 'tahunDipilih'));
     }
 
     /**
@@ -45,27 +46,19 @@ class KriteriaController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the request data
         $request->validate([
             'kode_kriteria' => 'required|string|max:255',
             'nama_kriteria' => 'required|string|max:255',
             'keterangan_kriteria' => 'string|max:255',
             'tipe_kriteria' => 'required|in:benefit,cost',
             'bobot' => 'required|numeric',
+            'tahun' => 'required|integer|min:2020|max:2100',
         ]);
-
-        // Ambil bobot yang ada
-        $total_bobot = Kriteria::sum('bobot');
-
-        // Cek apakah total bobot sudah 1
-        if (($total_bobot + $request->bobot) > 1) {
-            return redirect()->back()->withInput()->withErrors('error', 'Total bobot tidak boleh lebih dari 1.');
-        }
-
-        // Create a new Kriteria instance and save it to the database
-        Kriteria::create($request->all());
-
-        // Redirect to the index page with a success message
+        $periode = Periode::getActivePeriode();
+        Kriteria::create(array_merge(
+            $request->only(['kode_kriteria', 'nama_kriteria', 'keterangan_kriteria', 'tipe_kriteria', 'bobot', 'tahun']),
+            ['periode_id' => $periode?->id]
+        ));
         return redirect()->route('kriterias.index')->with('success', 'Kriteria created successfully.');
     }
 
@@ -91,57 +84,70 @@ class KriteriaController extends Controller
      */
     public function update(Request $request, Kriteria $kriteria)
     {
-        // Cek permission user
         $canEdit = Auth::user()->can('kriteria.edit');
         $canInputBobot = Auth::user()->can('kriteria.input_bobot');
-        
         if (!$canEdit && !$canInputBobot) {
             abort(403, 'Unauthorized action.');
         }
-        
-        // Jika hanya bisa input bobot, hanya validasi dan update bobot
         if (!$canEdit && $canInputBobot) {
             $request->validate([
                 'bobot' => 'required|numeric',
             ]);
-            
             $newBobot = $request->bobot;
-            
-            // Ambil bobot yang ada
             $total_bobot = Kriteria::where('id', '!=', $kriteria->id)->sum('bobot');
-            
-            // Cek apakah total bobot sudah 1
             if (($total_bobot + $newBobot) > 1) {
                 return redirect()->back()->withInput()->withErrors(['bobot' => 'Total bobot tidak boleh lebih dari 1.']);
             }
             
-            // Update hanya bobot
-            $kriteria->update(['bobot' => $newBobot]);
+            // Track perubahan bobot
+            if ($kriteria->bobot != $newBobot) {
+                \App\Models\KriteriaHistory::create([
+                    'kriteria_id' => $kriteria->id,
+                    'user_id' => auth()->id(),
+                    'field' => 'bobot',
+                    'old_value' => $kriteria->bobot,
+                    'new_value' => $newBobot,
+                    'changed_at' => now(),
+                ]);
+            }
             
+            $kriteria->update(['bobot' => $newBobot]);
             return redirect()->route('kriterias.index')->with('success', 'Bobot kriteria berhasil diperbarui.');
         }
-        
-        // Jika punya permission edit penuh, validasi dan update semua field
         $request->validate([
             'kode_kriteria' => 'nullable|string|max:255',
             'nama_kriteria' => 'required|string|max:255',
             'keterangan_kriteria' => 'string|max:255',
             'tipe_kriteria' => 'required|in:benefit,cost',
             'bobot' => 'required|numeric',
+            'tahun' => 'required|integer|min:2020|max:2100',
         ]);
-
-        // Ambil bobot yang ada
-        $total_bobot = Kriteria::where('id', '!=', $kriteria->id)->sum('bobot');
-
-        // Cek apakah total bobot sudah 1
+        $total_bobot = Kriteria::where('id', '!=', $kriteria->id)
+            ->where('periode_id', $kriteria->periode_id)
+            ->where('tahun', $kriteria->tahun)
+            ->sum('bobot');
         if (($total_bobot + $request->bobot) > 1) {
             return redirect()->back()->withInput()->withErrors(['bobot' => 'Total bobot tidak boleh lebih dari 1.']);
         }
-
-        // Find the Kriteria by ID and update it
-        $kriteria->update($request->all());
-
-        // Redirect to the index page with a success message
+        $periode = Periode::getActivePeriode();
+        // Cek perubahan semua field dan simpan ke history
+        $fieldsToTrack = ['kode_kriteria', 'nama_kriteria', 'keterangan_kriteria', 'tipe_kriteria', 'bobot', 'tahun'];
+        foreach ($fieldsToTrack as $field) {
+            if ($kriteria->$field != $request->$field) {
+                \App\Models\KriteriaHistory::create([
+                    'kriteria_id' => $kriteria->id,
+                    'user_id' => auth()->id(),
+                    'field' => $field,
+                    'old_value' => $kriteria->$field,
+                    'new_value' => $request->$field,
+                    'changed_at' => now(),
+                ]);
+            }
+        }
+        $kriteria->update(array_merge(
+            $request->only(['kode_kriteria', 'nama_kriteria', 'keterangan_kriteria', 'tipe_kriteria', 'bobot', 'tahun']),
+            ['periode_id' => $periode?->id]
+        ));
         return redirect()->route('kriterias.index')->with('success', 'Kriteria updated successfully.');
     }
 
@@ -173,5 +179,30 @@ class KriteriaController extends Controller
             }
         }
         return redirect()->route('kriterias.index')->with('success', 'Kriteria deleted successfully.');
+    }
+
+    public function auditLog()
+    {
+        // Pastikan hanya user dengan permission view_audit_log yang bisa akses
+        if (!auth()->user() || !auth()->user()->can('view_audit_log')) {
+            abort(403, 'Unauthorized');
+        }
+        $logs = \App\Models\KriteriaHistory::with(['kriteria', 'user'])
+            ->orderByDesc('changed_at')
+            ->paginate(30);
+        return view('kriterias.audit_log', compact('logs'));
+    }
+
+    public function auditLogPerKriteria($kriteriaId)
+    {
+        if (!auth()->user() || !auth()->user()->can('view_audit_log')) {
+            abort(403, 'Unauthorized');
+        }
+        $kriteria = \App\Models\Kriteria::findOrFail($kriteriaId);
+        $logs = \App\Models\KriteriaHistory::with(['user'])
+            ->where('kriteria_id', $kriteriaId)
+            ->orderByDesc('changed_at')
+            ->paginate(30);
+        return view('kriterias.audit_log_per_kriteria', compact('logs', 'kriteria'));
     }
 }

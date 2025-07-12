@@ -71,7 +71,7 @@
     </table>
 
     {{-- Tabel 2: Data Kriteria --}}
-    <h3>Daftar Kriteria Penilaian</h3>
+    {{-- <h3>Daftar Kriteria Penilaian</h3>
     <table>
         <thead>
             <tr>
@@ -98,10 +98,10 @@
                 <td style="font-weight:bold;">{{ number_format($totalBobot, 4) }}</td>
             </tr>
         </tbody>
-    </table>
+    </table> --}}
 
     {{-- Tabel 3: Data Sub-Kriteria --}}
-    <h3>Daftar Sub-Kriteria Penilaian</h3>
+    {{-- <h3>Daftar Sub-Kriteria Penilaian</h3>
     <table>
         <thead>
             <tr>
@@ -124,7 +124,7 @@
                 </tr>
             @endforeach
         </tbody>
-    </table>
+    </table> --}}
 
     {{-- Tabel 4: Data Penilaian yang Dilakukan --}}
     <h3>Rekap Penilaian Proyek</h3>
@@ -134,7 +134,6 @@
                 <th>No</th>
                 <th>Kode Proyek</th>
                 <th>Nama Proyek</th>
-                @php $kriterias = \App\Models\Kriteria::all(); @endphp
                 @foreach ($kriterias as $kriteria)
                     <th>{{ $kriteria->kode_kriteria }}</th>
                 @endforeach
@@ -168,12 +167,12 @@
         </tbody>
     </table>
 
-    @if($debugDetails && $firstDetail)
+    {{-- @if($debugDetails && $firstDetail)
     @php
         $kriterias = \App\Models\Kriteria::all();
-    @endphp
+    @endphp --}}
     {{-- Tabel Tahap 1: Mencari Nilai MAX, MIN, dan Selisih --}}
-    <h3>Tahap 1: Mencari Nilai MAX, MIN, dan Selisih</h3>
+    {{-- <h3>Tahap 1: Mencari Nilai MAX, MIN, dan Selisih</h3>
     <table>
         <thead>
             <tr>
@@ -215,9 +214,9 @@
                 @endforeach
             </tr>
         </tbody>
-    </table>
+    </table> --}}
 
-    <h3>Tahap 2: Normalisasi Nilai Utilitas</h3>
+    {{-- <h3>Tahap 2: Normalisasi Nilai Utilitas</h3>
     <table>
         <thead>
             <tr>
@@ -244,9 +243,9 @@
             </tr>
             @endforeach
         </tbody>
-    </table>
+    </table> --}}
 
-    <h3>Tahap 3: Perkalian Nilai Utilitas dengan Bobot Kriteria</h3>
+    {{-- <h3>Tahap 3: Perkalian Nilai Utilitas dengan Bobot Kriteria</h3>
     <table>
         <thead>
             <tr>
@@ -274,9 +273,9 @@
             @endforeach
         </tbody>
     </table>
-    @endif
+    @endif --}}
 
-    <h3>Tahap 4: Perangkingan HSE Awards</h3>
+    <h3>Ranking Health Safety and Environment Awards</h3>
     <table>
         <thead>
             <tr>

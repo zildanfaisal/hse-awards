@@ -10,11 +10,13 @@ class Proyek extends Model
     use HasFactory;
 
     protected $fillable = [
+        'periode_id',
         'kode_proyek',
         'nama_proyek',
         'manajer_proyek_id',
         'jenis_proyek_id',
         'lokasi_proyek',
+        'tahun',
     ];
 
     /**
@@ -34,5 +36,10 @@ class Proyek extends Model
     public function jenisProyek()
     {
         return $this->belongsTo(JenisProyek::class, 'jenis_proyek_id');
+    }
+
+    public function periode()
+    {
+        return $this->belongsTo(Periode::class);
     }
 }

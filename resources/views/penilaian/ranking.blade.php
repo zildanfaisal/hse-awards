@@ -21,7 +21,6 @@
                                     <th class="px-2 py-1 border">No</th>
                                     <th class="px-2 py-1 border">Kode Proyek</th>
                                     <th class="px-2 py-1 border">Manajer Proyek</th>
-                                    @php $kriterias = \App\Models\Kriteria::all(); @endphp
                                     @foreach ($kriterias as $kriteria)
                                         <th class="px-2 py-1 border">{{ $kriteria->kode_kriteria }}</th>
                                     @endforeach

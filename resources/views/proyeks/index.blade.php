@@ -18,7 +18,17 @@
                 </div>
             @endif
 
-            <div class="mb-4">
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <form id="filter-tahun-form" method="GET" action="">
+                        <label for="filter-tahun" class="mr-2 font-medium text-gray-700">Tahun:</label>
+                        <select name="tahun" id="filter-tahun" class="rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                            @foreach($tahunList as $tahun)
+                                <option value="{{ $tahun }}" {{ $tahunDipilih == $tahun ? 'selected' : '' }}>{{ $tahun }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                </div>
                 @can('data_proyek')
                     <a href="{{ route('proyeks.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                         Tambah Proyek
@@ -84,6 +94,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('filter-tahun').addEventListener('change', function() {
+        document.getElementById('filter-tahun-form').submit();
+    });
     document.querySelectorAll('.btn-delete-proyek').forEach(function(btn) {
         btn.addEventListener('click', function() {
             const id = this.getAttribute('data-id');

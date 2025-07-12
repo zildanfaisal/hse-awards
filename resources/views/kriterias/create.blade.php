@@ -33,13 +33,13 @@
                         
                         <div>
                             <label for="keterangan_kriteria" class="block text-sm font-medium text-gray-700">Keterangan Kriteria</label>
-                            <input type="text" name="keterangan_kriteria" id="keterangan_kriteria" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <textarea name="keterangan_kriteria" id="keterangan_kriteria" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                         </div>
 
-                        <div>
+                        <div class="hidden">
                             <label for="tipe_kriteria" class="block text-sm font-medium text-gray-700">Tipe Kriteria</label>
                             <select name="tipe_kriteria" id="tipe_kriteria" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="benefit">Benefit</option>
+                                <option value="benefit" selected>Benefit</option>
                                 <option value="cost">Cost</option>
                             </select>
                         </div>
@@ -47,6 +47,11 @@
                         <div>
                             <label for="bobot" class="block text-sm font-medium text-gray-700">Bobot</label>
                             <input type="text" name="bobot" id="bobot" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+
+                        <div>
+                            <label for="tahun" class="block text-sm font-medium text-gray-700">Tahun</label>
+                            <input type="number" name="tahun" id="tahun" min="2020" max="2100" value="{{ date('Y') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
 
                         <div class="flex justify-end pt-4">

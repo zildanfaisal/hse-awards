@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Periode;
 
 class PenilaianController extends Controller
 {
@@ -29,10 +30,15 @@ class PenilaianController extends Controller
     /**
      * Menampilkan daftar proyek untuk dinilai atau melihat status penilaian.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $proyeks = Proyek::all();
-        return view('penilaian.index', compact('proyeks'));
+        $periode = Periode::getActivePeriode();
+        $proyeks = $periode ? Proyek::where('periode_id', $periode->id)->get() : collect();
+        $tahunList = Proyek::where('periode_id', $periode?->id)->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun')->toArray();
+        $tahunTerbaru = $tahunList[0] ?? date('Y');
+        $tahunDipilih = $request->get('tahun', $tahunTerbaru);
+        $proyeks = $proyeks->where('tahun', $tahunDipilih);
+        return view('penilaian.index', compact('proyeks', 'tahunList', 'tahunDipilih'));
     }
 
     /**
@@ -40,13 +46,13 @@ class PenilaianController extends Controller
      */
     public function createEdit($proyekId)
     {
-        $proyek = Proyek::findOrFail($proyekId);
-        $kriterias = Kriteria::with('subKriterias')->get();
+        $periode = Periode::getActivePeriode();
+        $proyek = Proyek::where('periode_id', $periode?->id)->findOrFail($proyekId);
+        $kriterias = Kriteria::where('periode_id', $periode?->id)->with('subKriterias')->get();
         $nilaiTersimpan = Penilaian::where('proyek_id', $proyekId)
                                 ->pluck('sub_kriteria_id', 'kriteria_id')
                                 ->toArray();
-        // Navigasi proyek sebelumnya/berikutnya
-        $allProyeks = Proyek::orderBy('id')->pluck('id')->toArray();
+        $allProyeks = Proyek::where('periode_id', $periode?->id)->orderBy('id')->pluck('id')->toArray();
         $currentIndex = array_search($proyek->id, $allProyeks);
         $prevProyekId = $currentIndex > 0 ? $allProyeks[$currentIndex - 1] : null;
         $nextProyekId = $currentIndex < count($allProyeks) - 1 ? $allProyeks[$currentIndex + 1] : null;
@@ -58,28 +64,25 @@ class PenilaianController extends Controller
      */
     public function storeUpdate(Request $request, $proyekId)
     {
-        $proyek = Proyek::findOrFail($proyekId);
-
-        // Validasi input
+        $periode = Periode::getActivePeriode();
+        $proyek = Proyek::where('periode_id', $periode?->id)->findOrFail($proyekId);
         $rules = [];
-        foreach (Kriteria::all() as $kriteria) {
-            // Pastikan ada input untuk setiap kriteria dan itu adalah ID sub-kriteria yang valid
+        foreach (Kriteria::where('periode_id', $periode?->id)->get() as $kriteria) {
             $rules['kriteria_' . $kriteria->id] = 'required|exists:sub_kriterias,id';
         }
         $validatedData = $request->validate($rules);
-
-        // Simpan atau perbarui nilai penilaian
         foreach ($validatedData as $inputName => $subKriteriaId) {
-            $kriteriaId = str_replace('kriteria_', '', $inputName); // Ekstrak kriteria_id
-
+            $kriteriaId = str_replace('kriteria_', '', $inputName);
             Penilaian::updateOrCreate(
-                ['proyek_id' => $proyek->id, 'kriteria_id' => $kriteriaId],
+                [
+                    'proyek_id' => $proyek->id,
+                    'kriteria_id' => $kriteriaId,
+                    'periode_id' => $periode?->id,
+                ],
                 ['sub_kriteria_id' => $subKriteriaId]
             );
         }
-
-        // Navigasi ke proyek berikutnya jika ada
-        $allProyeks = Proyek::orderBy('id')->pluck('id')->toArray();
+        $allProyeks = Proyek::where('periode_id', $periode?->id)->orderBy('id')->pluck('id')->toArray();
         $currentIndex = array_search($proyek->id, $allProyeks);
         $nextProyekId = $currentIndex < count($allProyeks) - 1 ? $allProyeks[$currentIndex + 1] : null;
         if ($nextProyekId) {
@@ -91,29 +94,30 @@ class PenilaianController extends Controller
     /**
      * Menampilkan hasil ranking MAUT.
      */
-    public function showRanking()
+    public function showRanking(Request $request)
     {
-        // --- PILIH METODE PERHITUNGAN ---
-        // Ganti nilai variabel $method di bawah ini untuk mengubah cara kalkulasi.
-        // Pilihan yang tersedia:
-        // 'relative' => Sesuai perhitungan Excel (MIN/MAX dari data yang ada).
-        // 'absolute' => Sesuai perilaku awal sistem (MIN/MAX dari semua kemungkinan sub-kriteria).
-        
         $method = 'relative'; // <-- Ganti di sini jika perlu
 
+        $periode = Periode::getActivePeriode();
+        // Ambil tahun dari request jika ada, jika tidak pakai tahun terbaru dari proyek di periode aktif
+        $tahun = $request->get('tahun');
+        if (!$tahun) {
+            $tahun = Kriteria::where('periode_id', $periode?->id)->orderByDesc('tahun')->value('tahun') ?? date('Y');
+        }
+        $kriterias = Kriteria::where('periode_id', $periode?->id)
+            ->where('tahun', $tahun)
+            ->get();
+
         if ($method === 'relative') {
-            // Metode Skala Relatif (Sesuai Excel)
             list($rankedProyeks, $debugDetails) = $this->mautCalculatorService->rankAndDebugRelative();
         } else {
-            // Metode Skala Absolut (Perilaku Awal Sistem)
             $rankedProyeks = $this->mautCalculatorService->rankProjectsAbsolute();
             $debugDetails = [];
             foreach ($rankedProyeks as $proyek) {
                 $debugDetails[$proyek->id] = $this->mautCalculatorService->getCalculationDetailsAbsolute($proyek);
             }
         }
-        
-        return view('penilaian.ranking', compact('rankedProyeks', 'debugDetails', 'method'));
+        return view('penilaian.ranking', compact('rankedProyeks', 'debugDetails', 'method', 'kriterias', 'tahun'));
     }
 
     public function saveRanking(Request $request)
@@ -129,12 +133,16 @@ class PenilaianController extends Controller
         
         if ($method === 'relative') {
             list($rankedProyeks, $debugDetails) = $this->mautCalculatorService->rankAndDebugRelative();
+            // Pastikan urut dari skor tertinggi ke terendah
+            // $rankedProyeks = $rankedProyeks->sortByDesc('maut_score')->values();
         } else { // 'absolute'
             $rankedProyeks = $this->mautCalculatorService->rankProjectsAbsolute();
             $debugDetails = [];
             foreach ($rankedProyeks as $proyek) {
                 $debugDetails[$proyek->id] = $this->mautCalculatorService->getCalculationDetailsAbsolute($proyek);
             }
+            // Pastikan urut dari skor tertinggi ke terendah
+            // $rankedProyeks = $rankedProyeks->sortByDesc('maut_score')->values();
         }
 
         if ($rankedProyeks->isEmpty()) {
@@ -192,10 +200,20 @@ class PenilaianController extends Controller
     public function showRankingDetail($batchId)
     {
         $rankingBatch = RankingBatch::with(['details.proyek', 'user'])->findOrFail($batchId);
-        // Debug: cek isi calculation_details
-        // dd($rankingBatch->calculation_details);
         $rankedDetails = $rankingBatch->details->sortBy('rank'); // Urutkan berdasarkan rank
-        return view('penilaian.history_detail', compact('rankingBatch', 'rankedDetails'));
+        // Ambil periode_id dan tahun dari salah satu proyek/kriteria di batch
+        $assessmentDetails = $rankingBatch->assessment_details ? json_decode($rankingBatch->assessment_details, true) : [];
+        $periodeId = null;
+        $tahun = null;
+        if (!empty($assessmentDetails)) {
+            $first = $assessmentDetails[0];
+            $proyek = \App\Models\Proyek::find($first['proyek_id']);
+            $periodeId = $proyek ? $proyek->periode_id : null;
+            $tahun = $proyek ? $proyek->tahun : null;
+        }
+        $kriterias = $periodeId && $tahun ? \App\Models\Kriteria::where('periode_id', $periodeId)->where('tahun', $tahun)->get() : collect();
+        $subkriterias = $periodeId && $tahun ? \App\Models\SubKriteria::where('periode_id', $periodeId)->where('tahun', $tahun)->get() : collect();
+        return view('penilaian.history_detail', compact('rankingBatch', 'rankedDetails', 'kriterias', 'subkriterias'));
     }
 
     public function editRankingBatch($batchId)
@@ -242,7 +260,19 @@ class PenilaianController extends Controller
         $rankedDetails = $rankingBatch->details->sortBy('rank');
         $debugDetails = $rankingBatch->calculation_details ? json_decode($rankingBatch->calculation_details, true) : null;
         $firstDetail = $debugDetails ? reset($debugDetails) : null;
-        $pdf = Pdf::loadView('penilaian.history_detail_pdf', compact('rankingBatch', 'rankedDetails', 'debugDetails', 'firstDetail'));
+        // Ambil periode_id dan tahun dari salah satu proyek/kriteria di batch
+        $assessmentDetails = $rankingBatch->assessment_details ? json_decode($rankingBatch->assessment_details, true) : [];
+        $periodeId = null;
+        $tahun = null;
+        if (!empty($assessmentDetails)) {
+            $first = $assessmentDetails[0];
+            $proyek = \App\Models\Proyek::find($first['proyek_id']);
+            $periodeId = $proyek ? $proyek->periode_id : null;
+            $tahun = $proyek ? $proyek->tahun : null;
+        }
+        $kriterias = $periodeId && $tahun ? \App\Models\Kriteria::where('periode_id', $periodeId)->where('tahun', $tahun)->get() : collect();
+        $subkriterias = $periodeId && $tahun ? \App\Models\SubKriteria::where('periode_id', $periodeId)->where('tahun', $tahun)->get() : collect();
+        $pdf = Pdf::loadView('penilaian.history_detail_pdf', compact('rankingBatch', 'rankedDetails', 'debugDetails', 'firstDetail', 'kriterias', 'subkriterias'));
         $filename = 'Riwayat_Ranking_'.$rankingBatch->id.'.pdf';
         return $pdf->stream($filename);
     }

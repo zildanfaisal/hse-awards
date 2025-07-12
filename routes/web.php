@@ -10,6 +10,7 @@ use App\Http\Controllers\PenilaianController;
 use App\Models\Penilaian;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
+use App\Http\Controllers\PeriodeController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -123,6 +124,22 @@ Route::middleware('auth')->group(function () {
 
     // Route Role
     Route::resource('roles', App\Http\Controllers\RoleController::class);
+
+    // Route untuk manajemen periode (khusus super admin)
+    Route::middleware(['auth', 'permission:kelola_periode'])->group(function () {
+        Route::get('periodes', [PeriodeController::class, 'index'])->name('periodes.index');
+        Route::post('periodes', [PeriodeController::class, 'store'])->name('periodes.store');
+        Route::post('periodes/{id}/set-active', [PeriodeController::class, 'setActive'])->name('periodes.setActive');
+    });
+
+    // Route untuk halaman audit log kriteria, hanya untuk superadmin
+    Route::middleware(['auth', 'permission:view_audit_log'])->group(function () {
+        Route::get('/kriterias/audit-log', [\App\Http\Controllers\KriteriaController::class, 'auditLog'])->name('kriterias.audit_log');
+    });
+
+    Route::get('/kriterias/{kriteria}/audit-log', [\App\Http\Controllers\KriteriaController::class, 'auditLogPerKriteria'])
+        ->middleware('permission:view_audit_log')
+        ->name('kriterias.audit_log_per_kriteria');
 
 });
 

@@ -6,36 +6,40 @@ use App\Models\Kriteria;
 use App\Models\SubKriteria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Periode;
 
 class SubKriteriaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // $groupSubKriterias = SubKriteria::with('kriteria')->get()->groupBy(function($item) {
-        //     return $item->kriteria->nama_kriteria;
-        // });
-
-        // return view('subkriterias.index', compact('groupSubKriterias'));
-
-        $subkriterias = SubKriteria::with('kriteria')->get();
-
-        // Group by kriteria_id, lalu ambil semua kriteria
+        $periode = Periode::getActivePeriode();
+        $subkriterias = $periode ? SubKriteria::with('kriteria')->where('periode_id', $periode->id)->get() : collect();
+        $tahunList = SubKriteria::where('periode_id', $periode?->id)->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun')->toArray();
+        $tahunTerbaru = $tahunList[0] ?? date('Y');
+        $tahunDipilih = $request->get('tahun', $tahunTerbaru);
+        $subkriterias = $subkriterias->where('tahun', $tahunDipilih);
         $groupSubKriterias = $subkriterias->groupBy('kriteria_id');
-
-        $kriterias = Kriteria::all()->keyBy('id'); // agar mudah ambil nama & bobot berdasarkan id
-
-        return view('subkriterias.index', compact('groupSubKriterias', 'kriterias'));
+        $kriterias = \App\Models\Kriteria::where('periode_id', $periode?->id)->where('tahun', $tahunDipilih)->get()->keyBy('id');
+        return view('subkriterias.index', compact('groupSubKriterias', 'kriterias', 'tahunList', 'tahunDipilih'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        $kriterias = Kriteria::all();
+        $periode = Periode::getActivePeriode();
+        // Ambil list tahun dari kriteria pada periode aktif
+        $tahunList = Kriteria::where('periode_id', $periode?->id)
+            ->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun')->toArray();
+        // Ambil tahun dari request, jika tidak ada pakai tahun terbaru dari list
+        $tahun = $request->get('tahun', $tahunList[0] ?? date('Y'));
+        $kriterias = Kriteria::where('periode_id', $periode?->id)
+            ->where('tahun', $tahun)
+            ->get();
         $nextKode = null;
         $nextNilai = null;
         if ($kriterias->count() > 0) {
@@ -43,7 +47,7 @@ class SubKriteriaController extends Controller
             $nextKode = $this->generateNextKode($firstKriteria->id);
             $nextNilai = $this->generateNextNilai($firstKriteria->id);
         }
-        return view('subkriterias.create', compact('kriterias', 'nextKode', 'nextNilai'));
+        return view('subkriterias.create', compact('kriterias', 'nextKode', 'nextNilai', 'tahun', 'tahunList'));
     }
 
     // Helper untuk generate kode sub-kriteria berikutnya
@@ -71,12 +75,15 @@ class SubKriteriaController extends Controller
             'kriteria_id' => 'required|exists:kriterias,id',
             'nama_sub_kriteria' => 'required|string|max:255',
             'keterangan_sub_kriteria' => 'string|max:255',
+            'tahun' => 'required|integer|min:2020|max:2100',
         ]);
+        $periode = Periode::getActivePeriode();
         $kode_sub_kriteria = $this->generateNextKode($request->kriteria_id);
         $nilai_sub_kriteria = $this->generateNextNilai($request->kriteria_id);
         $data = $request->all();
         $data['kode_sub_kriteria'] = $kode_sub_kriteria;
         $data['nilai_sub_kriteria'] = $nilai_sub_kriteria;
+        $data['periode_id'] = $periode?->id;
         SubKriteria::create($data);
         return redirect()->route('subkriterias.index')->with('success', 'Sub-Kriteria berhasil ditambahkan.');
     }
@@ -94,7 +101,11 @@ class SubKriteriaController extends Controller
      */
     public function edit(SubKriteria $subkriteria)
     {
-        $kriterias = Kriteria::all();
+        $periode = Periode::getActivePeriode();
+        $tahun = $subkriteria->tahun;
+        $kriterias = Kriteria::where('periode_id', $periode?->id)
+            ->where('tahun', $tahun)
+            ->get();
         return view('subkriterias.edit', compact('subkriteria', 'kriterias'));
     }
 
@@ -103,23 +114,16 @@ class SubKriteriaController extends Controller
      */
     public function update(Request $request, SubKriteria $subkriteria)
     {
-        // Cek permission user
         $canEdit = Auth::user()->can('sub_kriteria.edit');
         $canInputBobot = Auth::user()->can('sub_kriteria.input_bobot');
-        
         if (!$canEdit && !$canInputBobot) {
             abort(403, 'Unauthorized action.');
         }
-        
-        // Jika hanya bisa input bobot, hanya validasi dan update nilai_sub_kriteria
         if (!$canEdit && $canInputBobot) {
             $request->validate([
                 'nilai_sub_kriteria' => 'required|numeric',
             ]);
-            
             $newNilai = $request->nilai_sub_kriteria;
-            
-            // Validasi: nilai tidak boleh duplikat pada kriteria yang sama
             $exists = SubKriteria::where('kriteria_id', $subkriteria->kriteria_id)
                 ->where('id', '!=', $subkriteria->id)
                 ->where('nilai_sub_kriteria', $newNilai)
@@ -127,30 +131,21 @@ class SubKriteriaController extends Controller
             if ($exists) {
                 return redirect()->back()->withInput()->withErrors(['nilai_sub_kriteria' => 'Nilai sudah digunakan pada sub-kriteria lain.']);
             }
-            
-            // Update hanya nilai_sub_kriteria
             $subkriteria->update(['nilai_sub_kriteria' => $newNilai]);
-            
-            // Shift nilai setelah update
             $this->shiftNilaiSubKriteria($subkriteria->kriteria_id);
-            
             return redirect()->route('subkriterias.index')->with('success', 'Bobot sub-kriteria berhasil diperbarui.');
         }
-        
-        // Jika punya permission edit penuh, validasi dan update semua field
         $request->validate([
             'kriteria_id' => 'required|exists:kriterias,id',
             'nama_sub_kriteria' => 'required|string|max:255',
             'keterangan_sub_kriteria' => 'string|max:255',
             'nilai_sub_kriteria' => 'required|numeric',
+            'tahun' => 'required|integer|min:2020|max:2100',
         ]);
-        
         $oldKriteriaId = $subkriteria->kriteria_id;
         $oldNilai = $subkriteria->nilai_sub_kriteria;
         $newKriteriaId = $request->kriteria_id;
         $newNilai = $request->nilai_sub_kriteria;
-        
-        // Validasi: nilai tidak boleh duplikat pada kriteria yang sama
         $exists = SubKriteria::where('kriteria_id', $newKriteriaId)
             ->where('id', '!=', $subkriteria->id)
             ->where('nilai_sub_kriteria', $newNilai)
@@ -158,28 +153,24 @@ class SubKriteriaController extends Controller
         if ($exists) {
             return redirect()->back()->withInput()->withErrors(['nilai_sub_kriteria' => 'Nilai sudah digunakan pada sub-kriteria lain.']);
         }
-        
         $data = $request->except('kode_sub_kriteria');
         if ($oldKriteriaId != $newKriteriaId) {
             $data['kode_sub_kriteria'] = $this->generateNextKode($newKriteriaId);
         }
+        $data['tahun'] = $request->tahun;
+        $data['periode_id'] = Periode::getActivePeriode()?->id;
         $subkriteria->update($data);
-        
-        // Setelah update, cek urutan nilai pada kriteria harus konsisten
         $this->shiftNilaiSubKriteria($oldKriteriaId);
         if ($oldKriteriaId != $newKriteriaId) {
             $this->shiftKodeSubKriteria($oldKriteriaId);
             $this->shiftNilaiSubKriteria($newKriteriaId);
         }
-        
-        // Validasi urutan nilai harus 1,2,3,... tanpa loncatan
         $allNilai = SubKriteria::where('kriteria_id', $newKriteriaId)->orderBy('nilai_sub_kriteria')->pluck('nilai_sub_kriteria')->toArray();
         foreach ($allNilai as $i => $val) {
             if ($val != $i + 1) {
                 return redirect()->back()->withInput()->withErrors(['nilai_sub_kriteria' => 'Urutan nilai harus berurutan tanpa loncatan.']);
             }
         }
-        
         return redirect()->route('subkriterias.index')->with('success', 'Sub-Kriteria berhasil diperbarui.');
     }
 

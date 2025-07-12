@@ -11,6 +11,15 @@
 
     <div class="py-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Periode HSE Awards -->
+            <div class="mb-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span class="text-lg font-semibold text-blue-700">Periode HSE Awards: <span class="font-bold">{{ $periodeHseAwards }}</span></span>
+                </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                 <!-- Box Data Proyek -->
                 <a href="{{ route('proyeks.index') }}" class="block group">

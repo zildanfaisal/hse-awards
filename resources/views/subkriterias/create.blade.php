@@ -51,6 +51,15 @@
                             <input type="text" name="nilai_sub_kriteria" id="nilai_sub_kriteria" value="{{ $nextNilai }}" readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100 cursor-not-allowed">
                         </div>
 
+                        <div>
+                            <label for="tahun" class="block text-sm font-medium text-gray-700">Tahun</label>
+                            <select name="tahun" id="tahun" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @foreach($tahunList as $t)
+                                    <option value="{{ $t }}" {{ $tahun == $t ? 'selected' : '' }}>{{ $t }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <div class="flex justify-end pt-4">
                             <a href="{{ route('subkriterias.index') }}" class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-200">Batal</a>
                             <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Simpan</button>
@@ -80,5 +89,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 nilaiInput.value = data.nilai;
             });
     });
+
+    const tahunSelect = document.getElementById('tahun');
+    if (tahunSelect) {
+        tahunSelect.addEventListener('change', function() {
+            this.form.submit();
+        });
+    }
 });
 </script>

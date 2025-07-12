@@ -20,10 +20,6 @@
                     <p class="mb-4"><strong>Catatan/Kesimpulan:</strong> {{ $rankingBatch->catatan }}</p>
                 @endif
 
-                @php
-                    $kriterias = \App\Models\Kriteria::all();
-                @endphp
-
                 {{-- Tabel 1: Daftar Proyek yang Mengikuti Penilaian --}}
                 <h3 class="font-bold text-lg mb-2">Daftar Proyek yang Mengikuti Penilaian</h3>
                 <div class="overflow-x-auto mb-6">
@@ -92,7 +88,6 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @php $subkriterias = \App\Models\SubKriteria::with('kriteria')->get(); @endphp
                             @foreach ($subkriterias as $i => $sub)
                                 <tr>
                                     <td class="px-2 py-1 border">{{ $i + 1 }}</td>
@@ -109,6 +104,8 @@
                 {{-- Tabel 4: Rekap Penilaian Proyek --}}
                 @php
                     $assessmentDetails = $rankingBatch->assessment_details ? json_decode($rankingBatch->assessment_details, true) : [];
+                    // Ambil urutan proyek_id sesuai urutan input
+                    $proyekIds = collect($assessmentDetails)->pluck('proyek_id')->unique()->values();
                 @endphp
                 <h3 class="font-bold text-lg mb-2">Rekap Penilaian Proyek</h3>
                 <div class="overflow-x-auto mb-6">
@@ -124,15 +121,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($rankedDetails as $i => $detail)
+                            @foreach ($proyekIds as $i => $proyekId)
+                                @php
+                                    $proyek = \App\Models\Proyek::with('manajerProyek')->find($proyekId);
+                                @endphp
                                 <tr>
                                     <td class="px-2 py-1 border">{{ $i + 1 }}</td>
-                                    <td class="px-2 py-1 border">{{ $detail->proyek->kode_proyek ?? '-' }}</td>
-                                    <td class="px-2 py-1 border">{{ $detail->proyek && $detail->proyek->manajerProyek ? $detail->proyek->manajerProyek->nama_manajer : '-' }}</td>
+                                    <td class="px-2 py-1 border">{{ $proyek ? $proyek->kode_proyek : '-' }}</td>
+                                    <td class="px-2 py-1 border">{{ $proyek && $proyek->manajerProyek ? $proyek->manajerProyek->nama_manajer : '-' }}</td>
                                     @foreach ($kriterias as $kriteria)
                                         @php
-                                            $penilaian = collect($assessmentDetails)->first(function($p) use ($detail, $kriteria) {
-                                                return $p['proyek_id'] == $detail->proyek->id && $p['kriteria_id'] == $kriteria->id;
+                                            $penilaian = collect($assessmentDetails)->first(function($p) use ($proyekId, $kriteria) {
+                                                return $p['proyek_id'] == $proyekId && $p['kriteria_id'] == $kriteria->id;
                                             });
                                         @endphp
                                         <td class="px-2 py-1 border">

@@ -10,6 +10,19 @@
                 <div class="mb-4 font-medium text-sm text-green-600">{{ session('success') }}</div>
             @endif
 
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <form id="filter-tahun-form" method="GET" action="">
+                        <label for="filter-tahun" class="mr-2 font-medium text-gray-700">Tahun:</label>
+                        <select name="tahun" id="filter-tahun" class="rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                            @foreach($tahunList as $tahun)
+                                <option value="{{ $tahun }}" {{ $tahunDipilih == $tahun ? 'selected' : '' }}>{{ $tahun }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                </div>
+            </div>
+
             <div class="bg-white overflow-hidden shadow-lg rounded-2xl">
                 <table class="min-w-full divide-y divide-gray-200 rounded-2xl overflow-hidden">
                     <thead class="bg-gray-50 sticky top-0 z-10 text-center">
@@ -86,4 +99,10 @@
             }
         })
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('filter-tahun').addEventListener('change', function() {
+            document.getElementById('filter-tahun-form').submit();
+        });
+    });
 </script>
